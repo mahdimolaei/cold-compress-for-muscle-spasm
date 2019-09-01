@@ -11,9 +11,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     socket = new QUdpSocket(this);
     //socket->bind(QHostAddress::AnyIPv4,1);
-    socket->bind(QHostAddress("192.168.43.221"),8080);
+    socket->bind(QHostAddress("192.168.43.221"),4210);
     connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
-
+    //parsing();
 
 }
 
@@ -306,16 +306,17 @@ void MainWindow::SeyHello()
 {
     QJsonDocument Jdata;
     QByteArray Data;
-    Data.append("Hello From UDP land");
+    readyRead();
+    //Data.append("Hello From UDP land");
     //socket->writeDatagram(Data,QHostAddress("192.168.137.110"),4210);
     //socket->writeDatagram(Data,QHostAddress::AnyIPv4,1);
     socket->writeDatagram(Data,QHostAddress("192.168.43.207"),8080);
-
+    parsing();
 
 }
-void MainWindow::readyRead()
+QByteArray MainWindow::readyRead()
 {
-    QByteArray Buffer;
+
     Buffer.resize(socket->pendingDatagramSize());
     QHostAddress sender;
     quint16 senderPort;
@@ -323,9 +324,73 @@ void MainWindow::readyRead()
     qDebug() << "Message from: " << sender.toString();
         qDebug() << "Message port: " << senderPort;
         qDebug() << "Message: " << Buffer;
+        return (Buffer.data());
 }
 
 void MainWindow::on_SendJsonButton_clicked()
 {
     SeyHello();
+    parsing();
+}
+void MainWindow::parsing()
+{
+    bool ok=1;
+    QtJson::JsonObject result = QtJson::parse(readyRead(),ok).toMap();
+    if(!ok) {
+        qDebug() << "not OK";
+
+      //qFatal("An error occurred during parsing");
+    }
+    else{
+        qDebug() << "IP:" << result["Ip"].toInt();
+        qDebug() << "Time:" << result["time"].toInt();
+    }
+///////////////////////////////
+    /*QFile file_obj2("C:/Users/mahdi-nnc/Documents/QtArchivePrj/UIV1/myfile2.json");
+
+    if(!file_obj2.open(QIODevice::ReadOnly | QIODevice::Text)){
+        qDebug()<<"Failed to open "<<"myfile2.json";
+        exit(1);
+    }
+
+    QTextStream file_text2(&file_obj2);
+    QString json_string2;
+    json_string2 = file_text2.readAll();
+    file_obj2.close();
+    //QByteArray json_bytes2 = json_string2.toLocal8Bit();
+    QByteArray json_bytes2 = Buffer.data();
+    //////////////////////////
+//QByteArray json_Arduinobytes = readyRead().toLocal8Bit();
+    auto json_arduino=QJsonDocument::fromJson(json_bytes2);
+//    auto json_arduino=QJsonDocument::fromJson(Buffer);
+
+    if(json_arduino.isNull()){
+        qDebug()<<"Failed to create JSON doc.";
+        exit(2);
+    }
+    if(!json_arduino.isObject()){
+        qDebug()<<"JSON is not an object.";
+        exit(3);
+    }
+
+    QJsonObject json_Arduinoobj=json_arduino.object();
+
+    if(json_Arduinoobj.isEmpty()){
+        qDebug()<<"JSON object is empty.";
+        exit(4);
+    }
+    /////////////////////////////////////
+    QVariantMap json_Arduinomap = json_Arduinoobj.toVariantMap();
+   ///////// QString IP = json_Arduinomap["Ip"].toString();
+    //qDebug()<<"j1:"+j1;
+
+//    qDebug()<< json_map["name"].toString();
+
+    //qDebug()<< json_map["name"].toString();
+    qDebug()<<"Time:"<< json_Arduinomap["time"].toInt();
+    //qDebug()<< json_map["enemy"].toString();
+*/
+//      QtJson::JsonObject nested = result["indent"].toMap();
+//      qDebug() << "length:" << nested["length"].toInt();
+//      qDebug() << "use_space:" << nested["use_space"].toBool();
 }

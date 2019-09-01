@@ -11,7 +11,7 @@
 #include <QVBoxLayout>
 //////
 #include <QUdpSocket>
-
+#include "json.h"
 namespace Ui {
 class MainWindow;
 
@@ -29,11 +29,14 @@ public:
     bool auto_manual_run;
     int stepstatus=0;
     void SeyHello();
+ QByteArray Buffer;
 private:
     QUdpSocket *socket;
     //Ui::myudp *ui;
 public slots:
-    void readyRead();
+    QByteArray readyRead();
+    void parsing(void);
+
 public slots:
     void timeReduce();
     void stepsRuning();
